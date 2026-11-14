@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratos Global Technologies — Admin Order Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #171b19;
+    --muted: #6b716c;
+    --green: #c9f36a;
+    --paper: #f5f5f0;
+    --white: #ffffff;
+    --line: #d9ddd5;
+    --dark: #202723;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "DM Sans", sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+  }
+  h1, h2, h3, h4, h5, h6 { font-family: "Manrope", sans-serif; letter-spacing: -.05em; }
+</style>
+</head>
+<body class="selection:bg-[#c9f36a] selection:text-black min-h-screen flex flex-col">
+
+<!-- Admin Top Header -->
+<header class="bg-[var(--dark)] text-white border-b border-[#39443a] py-4 px-6 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-[var(--green)] text-black font-black flex items-center justify-center text-lg">S</div>
+      <div>
+        <h1 class="text-base font-black tracking-wider">STRATOS ADMIN</h1>
+        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Live Firestore Order Management</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      <button onclick="feedSampleRow()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors shadow-sm">
+        ➕ Feed Sample Row
+      </button>
+      <span class="inline-flex items-center gap-1.5 text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-3 py-1.5 rounded-full font-bold">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Sync Active
+      </span>
+      <a href="index.html" class="bg-[var(--green)] text-slate-950 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#d8ff88] transition-colors">
+        ← Back to Portal
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- Main Container -->
+<main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+  
+  <!-- Stats Bar -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white border border-[var(--line)] rounded-2xl p-6 shadow-sm">
+      <p class="text-xs font-bold text-[var(--muted)] uppercase tracking-wider">Total Registrations</p>
+      <h3 id="totalOrders" class="text-3xl font-black text-[var(--ink)] mt-1">0</h3>
+    </div>
+    <div class="bg-white border border-[var(--line)] rounded-2xl p-6 shadow-sm">
+      <p class="text-xs font-bold text-[var(--muted)] uppercase tracking-wider">Instant PDF Tiers (Tier 2 & 3)</p>
+      <h3 id="instantPdfCount" class="text-3xl font-black text-emerald-600 mt-1">0</h3>
+    </div>
+    <div class="bg-white border border-[var(--line)] rounded-2xl p-6 shadow-sm">
+      <p class="text-xs font-bold text-[var(--muted)] uppercase tracking-wider">Pending Dispatches</p>
+      <h3 id="pendingCount" class="text-3xl font-black text-amber-600 mt-1">0</h3>
+    </div>
+  </div>
+
+  <!-- Orders Table Card -->
+  <div class="bg-white border border-[var(--line)] rounded-3xl shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-[var(--line)] flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-black text-[var(--ink)]">Student Submissions &amp; Orders</h2>
+        <p class="text-xs text-[var(--muted)]">Real-time data fetched directly from your Firestore `orders` collection.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-[var(--muted)]" id="lastSyncedTime">Last synced: Never</span>
+        <button onclick="loadOrders()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2 rounded-xl border border-slate-300 transition-colors">
+          🔄 Refresh Data
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 text-[var(--muted)] border-b border-[var(--line)] font-bold uppercase tracking-wider">
+          <tr>
+            <th class="p-4">Student Name</th>
+            <th class="p-4">Contact Info</th>
+            <th class="p-4">Internship Track & Sub-Domain</th>
+            <th class="p-4">Tier & Fee</th>
+            <th class="p-4">Dates</th>
+            <th class="p-4">Status</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody" class="divide-y divide-[var(--line)] font-medium">
+          <tr>
+            <td colspan="6" class="p-8 text-center text-[var(--muted)]">Connecting to Firestore and loading orders...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-[var(--dark)] text-slate-400 py-8 text-center text-xs border-t border-[#39443a]">
+  <p>© 2026 Stratos Global Technologies — Secure Order Dashboard</p>
+</footer>
+
+<!-- Toast notification element -->
+<div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 bg-[var(--dark)] text-white text-xs font-bold px-6 py-3.5 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-[60]">test</div>
+
+<!-- Firebase SDKs & Dashboard Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCJ2KQskok35B0s7i9YkuUAvXgTbpo3n8M",
+    authDomain: "stratos-global-edu.firebaseapp.com",
+    projectId: "stratos-global-edu",
+    storageBucket: "stratos-global-edu.firebasestorage.app",
+    messagingSenderId: "624610729269",
+    appId: "1:624610729269:web:436da7b3e46a5b7de7c07c",
+    measurementId: "G-HYZJ8YM99H"
+  };
+
+  // Explicitly match the exact string 'stratos-global-edu' used as the Firestore path appId on the main portal
+  const appId = 'stratos-global-edu';
+  const app = initializeApp(firebaseConfig, "stratos-admin-dashboard-app");
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  function toast(msg){
+    const t = document.getElementById("toast");
+    if(!t)return;
+    t.textContent = msg;
+    t.style.opacity = "1";
+    setTimeout(() => t.style.opacity = "0", 3000);
+  }
+
+  async function init() {
+    try {
+      await signInAnonymously(auth);
+    } catch (err) {
+      console.warn("Auth note:", err);
+    }
+    loadOrders();
+  }
+
+  window.loadOrders = async function() {
+    const tbody = document.getElementById("ordersTableBody");
+    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-[var(--muted)]">Fetching latest orders from artifacts/stratos-global-edu/public/data/orders...</td></tr>`;
+    
+    try {
+      // Connects to exact path: artifacts/stratos-global-edu/public/data/orders
+      const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+      const snapshot = await getDocs(ordersRef);
+      
+      const orders = [];
+      snapshot.forEach(doc => {
+        orders.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Sort descending by creation date
+      orders.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      document.getElementById("totalOrders").textContent = orders.length;
+      document.getElementById("instantPdfCount").textContent = orders.filter(o => o.tier && (o.tier.includes('Tier 2') || o.tier.includes('Tier 3') || o.tier.includes('₹199') || o.tier.includes('₹299'))).length;
+      document.getElementById("pendingCount").textContent = orders.filter(o => !o.paymentStatus || o.paymentStatus === "Pending").length;
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-[var(--muted)]">No orders found at artifacts/stratos-global-edu/public/data/orders yet. Click 'Feed Sample Row' or submit a test registration on your main portal!</td></tr>`;
+        document.getElementById("lastSyncedTime").textContent = "Last synced: " + new Date().toLocaleTimeString();
+        return;
+      }
+
+      tbody.innerHTML = orders.map(o => `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="p-4">
+            <strong class="text-[var(--ink)] block text-sm">${o.fullName || 'N/A'}</strong>
+            <span class="text-[10px] text-[var(--muted)] font-mono">ID: ${o.id.substring(0,8)}...</span>
+          </td>
+          <td class="p-4">
+            <div class="text-[var(--ink)] font-semibold">${o.email || 'N/A'}</div>
+            <div class="text-[var(--muted)] text-[10px]">${o.phone || 'N/A'}</div>
+          </td>
+          <td class="p-4">
+            <div class="font-bold text-[var(--ink)]">${o.track || 'N/A'}</div>
+            <div class="text-[10px] text-[var(--muted)]">${o.subDomain || ''}</div>
+          </td>
+          <td class="p-4">
+            <span class="inline-block bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md font-bold text-[11px]">${o.tier || 'Standard'}</span>
+          </td>
+          <td class="p-4 text-[var(--muted)] text-[11px]">
+            <div>Start: ${o.startDate || 'N/A'}</div>
+            <div>End: ${o.endDate || 'N/A'}</div>
+          </td>
+          <td class="p-4">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800">
+              ⏳ ${o.paymentStatus || 'Pending'}
+            </span>
+          </td>
+        </tr>
+      `).join("");
+
+      document.getElementById("lastSyncedTime").textContent = "Last synced: " + new Date().toLocaleTimeString();
+    } catch (err) {
+      console.error("Error loading orders:", err);
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-600 font-bold">Error loading Firestore orders. Check console for permissions.</td></tr>`;
+    }
+  }
+
+  window.feedSampleRow = async function() {
+    try {
+      const sampleNames = ["Aarav Sharma", "Priya Patel", "Rohan Verma", "Sneha Gupta", "Vikram Malhotra"];
+      const sampleTracks = [
+        ["Artificial Intelligence & GenAI", "Generative AI & LLM Fine-Tuning", "Tier 2: Instant PDF Certificate & QR ID (₹199)"],
+        ["Software Development", "MERN Stack (MongoDB, Express, React, Node)", "Tier 3: Stratos VIP Career Accelerator (₹299)"],
+        ["Cloud Computing & DevOps", "AWS Cloud Architecture & Terraform", "Tier 2: Instant PDF Certificate & QR ID (₹199)"],
+        ["Cyber Security & Ethical Hacking", "Penetration Testing & Vulnerability Assessment", "Tier 1: Basic Virtual Internship (₹99)"]
+      ];
+      
+      const randomName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+      const randomTrackInfo = sampleTracks[Math.floor(Math.random() * sampleTracks.length)];
+
+      const sampleData = {
+        fullName: randomName,
+        phone: "+91 " + Math.floor(9000000000 + Math.random() * 999999999),
+        email: randomName.toLowerCase().replace(' ', '.') + "@example.com",
+        track: randomTrackInfo[0],
+        subDomain: randomTrackInfo[1],
+        startDate: "2026-06-01",
+        endDate: "2026-07-01",
+        tier: randomTrackInfo[2],
+        paymentStatus: "Pending",
+        createdAt: new Date().toISOString()
+      };
+
+      const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+      await addDoc(ordersRef, sampleData);
+      toast("✨ Sample student registration added successfully!");
+      loadOrders();
+    } catch (err) {
+      console.error("Error feeding sample row:", err);
+      toast("❌ Failed to add sample row. Check Firestore rules.");
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
